@@ -1,0 +1,404 @@
+/* 房屋租赁管理系统 - 基础样式 */
+
+:root {
+    --primary-color: #2c3e50;
+    --secondary-color: #3498db;
+    --success-color: #27ae60;
+    --danger-color: #e74c3c;
+    --warning-color: #f39c12;
+    --info-color: #16a085;
+    --light-bg: #ecf0f1;
+    --dark-text: #2c3e50;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Microsoft YaHei', 'Segoe UI', Tahoma, sans-serif;
+    background-color: #f5f6fa;
+    color: var(--dark-text);
+    line-height: 1.6;
+}
+
+/* 导航栏 */
+.navbar {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    padding: 1rem 2rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.navbar-brand {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: white !important;
+    text-decoration: none;
+}
+
+.navbar-nav .nav-link {
+    color: rgba(255,255,255,0.8) !important;
+    margin: 0 0.5rem;
+    transition: color 0.3s;
+}
+
+.navbar-nav .nav-link:hover {
+    color: white !important;
+}
+
+.navbar-nav .nav-link.active {
+    color: white !important;
+    font-weight: bold;
+}
+
+/* 容器 */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+}
+
+/* 卡片 */
+.card {
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+    transition: transform 0.3s, box-shadow 0.3s;
+    background: white;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+}
+
+.card-header {
+    background: linear-gradient(135deg, var(--secondary-color), var(--info-color));
+    color: white;
+    font-weight: bold;
+    border-radius: 10px 10px 0 0 !important;
+    padding: 1rem 1.5rem;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+/* 按钮 */
+.btn {
+    border-radius: 5px;
+    padding: 0.5rem 1.5rem;
+    font-weight: 500;
+    transition: all 0.3s;
+    border: none;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--secondary-color), var(--info-color));
+    color: white;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, var(--info-color), var(--secondary-color));
+    color: white;
+    transform: scale(1.05);
+}
+
+.btn-success {
+    background: linear-gradient(135deg, var(--success-color), #2ecc71);
+    color: white;
+}
+
+.btn-success:hover {
+    transform: scale(1.05);
+    color: white;
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, var(--danger-color), #e74c3c);
+    color: white;
+}
+
+.btn-danger:hover {
+    transform: scale(1.05);
+    color: white;
+}
+
+.btn-sm {
+    padding: 0.3rem 1rem;
+    font-size: 0.9rem;
+}
+
+/* 表单 */
+.form-control {
+    border-radius: 5px;
+    border: 1px solid #ddd;
+    padding: 0.75rem;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.form-control:focus {
+    border-color: var(--secondary-color);
+    box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+}
+
+.form-label {
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: var(--dark-text);
+}
+
+/* 表格 */
+.table {
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.table thead th {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    font-weight: bold;
+    border: none;
+    padding: 1rem;
+}
+
+.table tbody tr {
+    transition: background 0.3s;
+}
+
+.table tbody tr:hover {
+    background: rgba(52, 152, 219, 0.1);
+}
+
+.table td {
+    padding: 1rem;
+    vertical-align: middle;
+}
+
+/* 徽章 */
+.badge {
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    font-weight: 500;
+}
+
+.badge-success {
+    background: var(--success-color);
+}
+
+.badge-danger {
+    background: var(--danger-color);
+}
+
+.badge-warning {
+    background: var(--warning-color);
+}
+
+.badge-info {
+    background: var(--info-color);
+}
+
+/* 统计卡片 */
+.stat-card {
+    text-align: center;
+    padding: 2rem;
+}
+
+.stat-card .stat-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.stat-card .stat-number {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: var(--secondary-color);
+}
+
+.stat-card .stat-label {
+    color: #7f8c8d;
+    font-size: 1rem;
+}
+
+/* 搜索框 */
+.search-box {
+    position: relative;
+}
+
+.search-box .form-control {
+    padding-left: 3rem;
+}
+
+.search-box .search-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #aaa;
+}
+
+/* 分页 */
+.pagination {
+    margin-top: 2rem;
+}
+
+.pagination .page-link {
+    color: var(--secondary-color);
+    border-radius: 5px;
+    margin: 0 0.25rem;
+}
+
+.pagination .page-item.active .page-link {
+    background: var(--secondary-color);
+    border-color: var(--secondary-color);
+}
+
+/* 提示消息 */
+.alert {
+    border-radius: 5px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+/* 登录页面 */
+.login-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+}
+
+.login-box {
+    background: white;
+    border-radius: 15px;
+    padding: 3rem;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    width: 100%;
+    max-width: 400px;
+}
+
+.login-box h2 {
+    text-align: center;
+    margin-bottom: 2rem;
+    color: var(--primary-color);
+}
+
+/* 房屋卡片 */
+.house-card {
+    position: relative;
+    overflow: hidden;
+}
+
+.house-card .card-img-top {
+    height: 200px;
+    object-fit: cover;
+}
+
+.house-card .price-tag {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: var(--danger-color);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 5px;
+    font-weight: bold;
+}
+
+.house-card .status-tag {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+}
+
+/* 响应式 */
+@media (max-width: 768px) {
+    .container {
+        padding: 1rem 0.5rem;
+    }
+
+    .card-body {
+        padding: 1rem;
+    }
+
+    .stat-card .stat-number {
+        font-size: 2rem;
+    }
+}
+
+/* 动画 */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease-out;
+}
+
+/* 侧边栏 */
+.sidebar {
+    background: white;
+    min-height: 100vh;
+    padding: 2rem 1rem;
+    border-right: 1px solid #eee;
+}
+
+.sidebar .nav-link {
+    color: var(--dark-text);
+    padding: 0.75rem 1rem;
+    border-radius: 5px;
+    margin-bottom: 0.5rem;
+    transition: all 0.3s;
+}
+
+.sidebar .nav-link:hover,
+.sidebar .nav-link.active {
+    background: var(--secondary-color);
+    color: white;
+}
+
+/* 模态框样式覆盖 */
+.modal-content {
+    border-radius: 10px;
+    border: none;
+}
+
+.modal-header {
+    background: linear-gradient(135deg, var(--secondary-color), var(--info-color));
+    color: white;
+    border-radius: 10px 10px 0 0;
+}
+
+.modal-footer {
+    border-top: 1px solid #eee;
+}
+
+/* 空状态 */
+.empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: #aaa;
+}
+
+.empty-state .icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+}
+
+/* Footer */
+.footer {
+    background: var(--primary-color);
+    color: white;
+    text-align: center;
+    padding: 1.5rem;
+    margin-top: 3rem;
+}

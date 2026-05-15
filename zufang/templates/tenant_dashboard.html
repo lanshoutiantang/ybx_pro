@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}租客中心 - 房屋租赁管理系统{% endblock %}
+
+{% block content %}
+<div class="container fade-in">
+    <div class="row">
+        <!-- 侧边栏 -->
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-header">👤 个人中心</div>
+                <div class="card-body">
+                    <h5>{{ tenant.name }}</h5>
+                    <p class="text-muted">租客账号</p>
+                    <hr>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">📱 {{ tenant.phone }}</li>
+                        <li class="mb-2">🆔 {{ tenant.id_card or '未填写' }}</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- 主内容 -->
+        <div class="col-md-9">
+            <div class="card"
+                <div class="card-header">🏠 我的租房信息</div>
+                <div class="card-body">
+                    {% if tenant.house %}
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h4>{{ tenant.house.title }}</h4>
+                            <p class="text-muted">📍 {{ tenant.house.address }}</p>
+                            
+                            <table class="table table-borderless">
+                                <tr>
+                                    <th>月租金</th>
+                                    <td class="text-danger fw-bold">{{ tenant.house.price }} 元</td>
+                                </tr>
+                                <tr>
+                                    <th>户型</th>
+                                    <td>{{ tenant.house.room_count }}室{{ tenant.house.hall_count }}厅{{ tenant.house.toilet_count }}卫</td>
+                                </tr>
+                                <tr>
+                                    <th>面积</th>
+                                    <td>{{ tenant.house.area }} ㎡</td>
+                                </tr>
+                                <tr>
+                                    <th>租期开始</th>
+                                    <td>{{ tenant.rent_start }}</td>
+                                </tr>
+                                <tr>
+                                    <th>租期结束</th>
+                                    <td>{{ tenant.rent_end }}</td>
+                                </tr>
+                                <tr>
+                                    <th>已付租金</th>
+                                    <td class="text-success">{{ tenant.rent_amount }} 元</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="bg-secondary d-flex align-items-center justify-content-center rounded" style="height: 200px;">
+                                <span class="text-white fs-1">🏠</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="empty-state">
+                        <div class="icon">🏚️</div>
+                        <p>您还没有租住房屋</p>
+                        <a href="{{ url_for('houses') }}" class="btn btn-primary">浏览房源</a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- 房东信息 -->
+            {% if tenant.house %}
+            <div class="card mt-4">
+                <div class="card-header">👨‍💼 房东信息</div>
+                <div class="card-body">
+                    <table class="table table-borderless">
+                        <tr>
+                            <th width="120">房东姓名</th>
+                            <td>{{ tenant.house.owner_name or '未填写' }}</td>
+                        </tr>
+                        <tr>
+                            <th>联系电话</th>
+                            <td>{{ tenant.house.owner_phone or '未填写' }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

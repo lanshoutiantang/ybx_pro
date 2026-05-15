@@ -1,0 +1,7 @@
+.vscode/
+__pycache__/
+_mess/
+pth/
+config_test.yaml
+Stereo_inference_student_1920_1536_input/
+result.txt

@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block title %}房屋列表 - 房屋租赁管理系统{% endblock %}
+
+{% block content %}
+<div class="container fade-in">
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span>🏠 房屋管理</span>
+            {% if session.role == 'admin' %}
+            <a href="{{ url_for('house_add') }}" class="btn btn-sm btn-light">➕ 添加房屋</a>
+            {% endif %}
+        </div>
+        <div class="card-body">
+            <!-- 搜索和筛选 -->
+            <form method="GET" class="row mb-4">
+                <div class="col-md-6">
+                    <div class="search-box">
+                        <input type="text" name="search" class="form-control" placeholder="搜索房屋标题或地址..." value="{{ search }}">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <select name="status" class="form-control">
+                        <option value="">全部状态</option>
+                        <option value="available" {{ 'selected' if status_filter == 'available' }}>可租</option>
+                        <option value="rented" {{ 'selected' if status_filter == 'rented' }}>已租</option>
+                        <option value="unavailable" {{ 'selected' if status_filter == 'unavailable' }}>不可租</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary w-100">🔍 搜索</button>
+                </div>
+            </form>
+
+            <!-- 表格 -->
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>标题</th>
+                            <th>地址</th>
+                            <th>租金(元/月)</th>
+                            <th>户型</th>
+                            <th>面积(㎡)</th>
+                            <th>状态</th>
+                            <th>房东</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for house in houses.items %}
+                        <tr>
+                            <td>{{ house.id }}</td>
+                            <td>{{ house.title }}</td>
+                            <td>{{ house.address }}</td>
+                            <td class="text-danger fw-bold">{{ house.price }}</td>
+                            <td>{{ house.room_count }}室{{ house.hall_count }}厅{{ house.toilet_count }}卫</td>
+                            <td>{{ house.area }}</td>
+                            <td>
+                                {% if house.status == 'available' %}
+                                <span class="badge badge-success">可租</span>
+                                {% elif house.status == 'rented' %}
+                                <span class="badge badge-danger">已租</span>
+                                {% else %}
+                                <span class="badge badge-warning">不可租</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ house.owner_name }}</td>
+                            <td>
+                                <a href="{{ url_for('house_detail', house_id=house.id) }}" class="btn btn-sm btn-info">查看</a>
+                                {% if session.role == 'admin' %}
+                                <a href="{{ url_for('house_edit', house_id=house.id) }}" class="btn btn-sm btn-warning">编辑</a>
+                                <form method="POST" action="{{ url_for('house_delete', house_id=house.id) }}" style="display:inline;">
+                                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('确定要删除吗?')">删除</button>
+                                </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="9" class="text-center">暂无房屋数据</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 分页 -->
+            {% if houses.pages > 1 %}
+            <nav>
+                <ul class="pagination justify-content-center">
+                    {% if houses.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('houses', page=houses.prev_num, search=search, status=status_filter) }}">上一页</a>
+                    </li>
+                    {% endif %}
+
+                    {% for p in range(1, houses.pages + 1) %}
+                    <li class="page-item {{ 'active' if p == houses.page else '' }}">
+                        <a class="page-link" href="{{ url_for('houses', page=p, search=search, status=status_filter) }}">{{ p }}</a>
+                    </li>
+                    {% endfor %}
+
+                    {% if houses.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('houses', page=houses.next_num, search=search, status=status_filter) }}">下一页</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

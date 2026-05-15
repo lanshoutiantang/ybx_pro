@@ -1,0 +1,22 @@
+%YAML:1.0
+---
+size: !!opencv-matrix
+   rows: 2
+   cols: 1
+   dt: d
+   data: [ 1920., 1536. ]
+
+T: !!opencv-matrix
+   rows: 1
+   cols: 1
+   dt: d
+   data: [ 60.0 ]
+
+# baseline = 0.06m    (60mm)"
+P1: !!opencv-matrix
+   rows: 3
+   cols: 4
+   dt: d
+   data: [ 777.20299270985186, 0., 960., 0., 0.,
+           777.20299270985186,     768., 0., 0., 0., 1., 0. ]
+

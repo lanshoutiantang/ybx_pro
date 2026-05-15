@@ -1,0 +1,29 @@
+stages:
+  - validation
+  - monitor
+
+basic_checks:
+  stage: validation
+  tags:
+    - docker
+  script:
+    - echo "Running basic code validation"
+  rules:
+    - when: always
+
+checkpoint_monitor:
+  stage: monitor
+  tags:
+    - docker
+  script:
+    # 使用 curl 发送 webhook
+    - |
+      curl -X POST -H "Content-Type: application/json" \
+        -d '{"msg_type":"text", "content":{"text":"双目模型版本更新了: '"\n$CI_PROJECT_URL \n$CI_COMMIT_TITLE "'"}}' \
+        https://open.feishu.cn/open-apis/bot/v2/hook/4805e658-b79a-4f31-b8f9-82e2baf32718
+  rules:
+    # 只针对 main 和 master 分支，且 checkpoint 文件夹有变化时触发
+    - if: '$CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "master"'
+      changes:
+        - checkpoint/**/*
+      when: on_success

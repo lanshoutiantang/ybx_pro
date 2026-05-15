@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}租客管理 - 房屋租赁管理系统{% endblock %}
+
+{% block content %}
+<div class="container fade-in">
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span>👥 租客管理</span>
+            <a href="{{ url_for('tenant_add') }}" class="btn btn-sm btn-light">➕ 添加租客</a>
+        </div>
+        <div class="card-body">
+            <!-- 搜索 -->
+            <form method="GET" class="row mb-4">
+                <div class="col-md-8">
+                    <input type="text" name="search" class="form-control" placeholder="搜索租客姓名或电话..." value="{{ search }}">
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-primary w-100">🔍 搜索</button>
+                </div>
+            </form>
+
+            <!-- 表格 -->
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>姓名</th>
+                            <th>电话</th>
+                            <th>身份证</th>
+                            <th>租住房屋</th>
+                            <th>租期</th>
+                            <th>已付租金</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for tenant in tenants.items %}
+                        <tr>
+                            <td>{{ tenant.id }}</td>
+                            <td>{{ tenant.name }}</td>
+                            <td>{{ tenant.phone }}</td>
+                            <td>{{ tenant.id_card or '-' }}</td>
+                            <td>{{ tenant.house.title if tenant.house else '-' }}</td>
+                            <td>
+                                {% if tenant.rent_start and tenant.rent_end %}
+                                {{ tenant.rent_start }} ~ {{ tenant.rent_end }}
+                                {% else %}
+                                -
+                                {% endif %}
+                            </td>
+                            <td class="text-success fw-bold">{{ tenant.rent_amount or 0 }}元</td>
+                            <td>
+                                <a href="{{ url_for('tenant_edit', tenant_id=tenant.id) }}" class="btn btn-sm btn-warning">编辑</a>
+                                <form method="POST" action="{{ url_for('tenant_delete', tenant_id=tenant.id) }}" style="display:inline;">
+                                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('确定要删除吗?')">删除</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="8" class="text-center">暂无租客数据</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 分页 -->
+            {% if tenants.pages > 1 %}
+            <nav>
+                <ul class="pagination justify-content-center">
+                    {% if tenants.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('tenants', page=tenants.prev_num, search=search) }}">上一页</a>
+                    </li>
+                    {% endif %}
+
+                    {% for p in range(1, tenants.pages + 1) %}
+                    <li class="page-item {{ 'active' if p == tenants.page else '' }}">
+                        <a class="page-link" href="{{ url_for('tenants', page=p, search=search) }}">{{ p }}</a>
+                    </li>
+                    {% endfor %}
+
+                    {% if tenants.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('tenants', page=tenants.next_num, search=search) }}">下一页</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

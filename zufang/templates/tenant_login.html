@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}租客登录 - 房屋租赁管理系统{% endblock %}
+
+{% block content %}
+<div class="login-container">
+    <div class="login-box fade-in">
+        <h2>👤 租客登录</h2>
+        <form method="POST">
+            <div class="mb-4">
+                <label class="form-label">用户名</label>
+                <input type="text" name="username" class="form-control" placeholder="请输入用户名" required autofocus>
+            </div>
+            <div class="mb-4">
+                <label class="form-label">密码</label>
+                <input type="password" name="password" class="form-control" placeholder="请输入密码" required>
+            </div>
+            <button type="submit" class="btn btn-primary w-100 mb-3">登录</button>
+        </form>
+        
+        <div class="text-center mt-3">
+            <p>还没有账号？ <a href="{{ url_for('tenant_register') }}">立即注册</a></p>
+        </div>
+        
+        <div class="text-center mt-4">
+            <hr>
+            <p class="text-muted"><a href="{{ url_for('login') }}">← 管理员登录</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}

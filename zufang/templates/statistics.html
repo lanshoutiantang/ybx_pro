@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}统计报表 - 房屋租赁管理系统{% endblock %}
+
+{% block content %}
+<div class="container fade-in">
+    <h3 class="mb-4">📊 统计报表</h3>
+
+    <!-- 统计卡片 -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card stat-card">
+                <div class="stat-icon">🏠</div>
+                <div class="stat-number">{{ total_houses }}</div>
+                <div class="stat-label">房屋总数</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stat-card">
+                <div class="stat-icon">✅</div>
+                <div class="stat-number">{{ available_houses }}</div>
+                <div class="stat-label">可租房屋</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stat-card">
+                <div class="stat-icon">👥</div>
+                <div class="stat-number">{{ total_tenants }}</div>
+                <div class="stat-label">租客总数</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stat-card">
+                <div class="stat-icon">📄</div>
+                <div class="stat-number">{{ active_contracts }}</div>
+                <div class="stat-label">有效合同</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 图表区域（简化版） -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">🏠 房屋状态分布</div>
+                <div class="card-body text-center">
+                    <div class="d-flex justify-content-around">
+                        <div class="text-center">
+                            <div class="fs-1 text-success">✓</div>
+                            <div class="fw-bold">{{ available_houses }}</div>
+                            <div class="text-muted">可租</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="fs-1 text-danger">✗</div>
+                            <div class="fw-bold">{{ rented_houses }}</div>
+                            <div class="text-muted">已租</div>
+                        </div>
+                    </div>
+                    <div class="progress mt-3" style="height: 20px;">
+                        <div class="progress-bar bg-success" style="width: {{ (available_houses / total_houses * 100) if total_houses > 0 else 0 }}%">
+                            可租 {{ available_houses }}
+                        </div>
+                        <div class="progress-bar bg-danger" style="width: {{ (rented_houses / total_houses * 100) if total_houses > 0 else 0 }}%">
+                            已租 {{ rented_houses }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">💰 收入概况</div>
+                <div class="card-body">
+                    <table class="table table-borderless">
+                        <tr>
+                            <td>累计租金收入</td>
+                            <td class="text-success fw-bold fs-4 text-end">{{ total_rent }} 元</td>
+                        </tr>
+                        <tr>
+                            <td>当前租客数</td>
+                            <td class="text-end">{{ total_tenants }} 人</td>
+                        </tr>
+                        <tr>
+                            <td>活跃合同数</td>
+                            <td class="text-end">{{ active_contracts }} 份</td>
+                        </tr>
+                        <tr>
+                            <td>房屋出租率</td>
+                            <td class="text-end">{{ ((rented_houses / total_houses * 100) | round(1)) if total_houses > 0 else 0 }}%</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <a href="{{ url_for('index') }}" class="btn btn-secondary">← 返回首页</a>
+    </div>
+</div>
+{% endblock %}

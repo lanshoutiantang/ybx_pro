@@ -1,0 +1,8 @@
+{
+  "claude-code-setup": {
+    "enabled": true,
+    "gitUrl": "https://github.com/anthropics/claude-plugins-official/tree/main/plugins/claude-code-setup",
+    "ref": "main",
+    "installedCommit": "1a2f18b05cf5652fd25403e8d229fc884fb84103"
+  }
+}

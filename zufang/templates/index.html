@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}首页 - 房屋租赁管理系统{% endblock %}
+
+{% block content %}
+<div class="container fade-in">
+    <!-- 统计卡片 -->
+    <div class="row mb-5">
+        <div class="col-md-4">
+            <div class="card stat-card">
+                <div class="stat-icon">🏠</div>
+                <div class="stat-number">{{ total_houses }}</div>
+                <div class="stat-label">房屋总数</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card stat-card">
+                <div class="stat-icon">👥</div>
+                <div class="stat-number">{{ total_tenants }}</div>
+                <div class="stat-label">租客总数</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card stat-card">
+                <div class="stat-icon">💰</div>
+                <div class="stat-number">{{ total_houses }}</div>
+                <div class="stat-label">在租房屋</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 最新房屋 -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>🏠 最新房屋</span>
+                    <a href="{{ url_for('houses') }}" class="btn btn-sm btn-light">查看更多</a>
+                </div>
+                <div class="card-body">
+                    {% if houses %}
+                    <div class="row">
+                        {% for house in houses %}
+                        <div class="col-md-4 mb-4">
+                            <div class="card house-card">
+                                <div class="position-relative">
+                                    <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center" style="height: 150px;">
+                                        <span class="text-white fs-1">🏠</span>
+                                    </div>
+                                    <span class="badge bg-danger position-absolute top-0 end-0 m-2">{{ house.price }}元/月</span>
+                                    <span class="badge bg-success position-absolute top-0 start-0 m-2">{{ '可租' if house.status == 'available' else '已租' }}</span>
+                                </div>
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ house.title }}</h5>
+                                    <p class="text-muted small">📍 {{ house.address }}</p>
+                                    <div class="d-flex justify-content-between small text-secondary">
+                                        <span>{{ house.room_count }}室{{ house.hall_count }}厅</span>
+                                        <span>{{ house.area }}㎡</span>
+                                        <span>{{ house.floor }}</span>
+                                    </div>
+                                    <a href="{{ url_for('house_detail', house_id=house.id) }}" class="btn btn-primary btn-sm w-100 mt-3">查看详情</a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="empty-state">
+                        <div class="icon">🏚️</div>
+                        <p>暂无房屋信息</p>
+                        {% if session.role == 'admin' %}
+                        <a href="{{ url_for('house_add') }}" class="btn btn-primary">添加房屋</a>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 快捷操作 -->
+    {% if session.user_id %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">⚡ 快捷操作</div>
+                <div class="card-body text-center">
+                    <a href="{{ url_for('house_add') }}" class="btn btn-primary mx-2">➕ 添加房屋</a>
+                    <a href="{{ url_for('tenant_add') }}" class="btn btn-success mx-2">👤 添加租客</a>
+                    <a href="{{ url_for('houses') }}" class="btn btn-info mx-2">📋 房屋列表</a>
+                    <a href="{{ url_for('tenants') }}" class="btn btn-warning mx-2">👥 租客列表</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

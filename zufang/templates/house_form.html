@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}{{ '编辑' if action == 'edit' else '添加' }}房屋{% endblock %}
+
+{% block content %}
+<div class="container fade-in">
+    <div class="card">
+        <div class="card-header">
+            {{ '✏️ 编辑房屋' if action == 'edit' else '➕ 添加房屋' }}
+        </div>
+        <div class="card-body">
+            <form method="POST">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">房屋标题 *</label>
+                        <input type="text" name="title" class="form-control" value="{{ house.title if house else '' }}" required placeholder="例如: 精装两居室">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">地址 *</label>
+                        <input type="text" name="address" class="form-control" value="{{ house.address if house else '' }}" required placeholder="例如: 朝阳区建国路88号">
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">月租金(元) *</label>
+                        <input type="number" name="price" class="form-control" value="{{ house.price if house else '' }}" required step="0.01">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">面积(㎡)</label>
+                        <input type="number" name="area" class="form-control" value="{{ house.area if house else '' }}" step="0.01">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">状态</label>
+                        <select name="status" class="form-control">
+                            <option value="available" {{ 'selected' if (house and house.status == 'available') else '' }}>可租</option>
+                            <option value="rented" {{ 'selected' if (house and house.status == 'rented') else '' }}>已租</option>
+                            <option value="unavailable" {{ 'selected' if (house and house.status == 'unavailable') else '' }}>不可租</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">卧室数</label>
+                        <input type="number" name="room_count" class="form-control" value="{{ house.room_count if house else '1' }}" min="0">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">客厅数</label>
+                        <input type="number" name="hall_count" class="form-control" value="{{ house.hall_count if house else '1' }}" min="0">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">卫生间数</label>
+                        <input type="number" name="toilet_count" class="form-control" value="{{ house.toilet_count if house else '1' }}" min="0">
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">楼层</label>
+                        <input type="text" name="floor" class="form-control" value="{{ house.floor if house else '' }}" placeholder="例如: 5/18">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">朝向</label>
+                        <select name="orientation" class="form-control">
+                            <option value="">请选择</option>
+                            <option value="南" {{ 'selected' if (house and house.orientation == '南') else '' }}>南</option>
+                            <option value="北" {{ 'selected' if (house and house.orientation == '北') else '' }}>北</option>
+                            <option value="东" {{ 'selected' if (house and house.orientation == '东') else '' }}>东</option>
+                            <option value="西" {{ 'selected' if (house and house.orientation == '西') else '' }}>西</option>
+                            <option value="南北通透" {{ 'selected' if (house and house.orientation == '南北通透') else '' }}>南北通透</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">房东姓名</label>
+                        <input type="text" name="owner_name" class="form-control" value="{{ house.owner_name if house else '' }}">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">房东电话</label>
+                        <input type="text" name="owner_phone" class="form-control" value="{{ house.owner_phone if house else '' }}">
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">详细描述</label>
+                    <textarea name="description" class="form-control" rows="4" placeholder="描述房屋特点、装修情况、周边设施等...">{{ house.description if house else '' }}</textarea>
+                </div>
+
+                <div class="text-center mt-4">
+                    <button type="submit" class="btn btn-success px-5">💾 保存</button>
+                    <a href="{{ url_for('houses') }}" class="btn btn-secondary px-5 ms-2">取消</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}{{ '编辑' if action == 'edit' else '添加' }}租客{% endblock %}
+
+{% block content %}
+<div class="container fade-in">
+    <div class="card">
+        <div class="card-header">
+            {{ '✏️ 编辑租客' if action == 'edit' else '➕ 添加租客' }}
+        </div>
+        <div class="card-body">
+            <form method="POST">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">姓名 *</label>
+                        <input type="text" name="name" class="form-control" value="{{ tenant.name if tenant else '' }}" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">电话 *</label>
+                        <input type="text" name="phone" class="form-control" value="{{ tenant.phone if tenant else '' }}" required>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">身份证号</label>
+                        <input type="text" name="id_card" class="form-control" value="{{ tenant.id_card if tenant else '' }}">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">租住房屋 *</label>
+                        <select name="house_id" class="form-control" required>
+                            <option value="">请选择房屋</option>
+                            {% for house in houses %}
+                            <option value="{{ house.id }}" {{ 'selected' if (tenant and tenant.house_id == house.id) else '' }}>
+                                {{ house.title }} - {{ house.address }} ({{ house.price }}元/月)
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">租期开始</label>
+                        <input type="date" name="rent_start" class="form-control" value="{{ tenant.rent_start if tenant else '' }}">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">租期结束</label>
+                        <input type="date" name="rent_end" class="form-control" value="{{ tenant.rent_end if tenant else '' }}">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">已付租金(元)</label>
+                        <input type="number" name="rent_amount" class="form-control" value="{{ tenant.rent_amount if tenant else '0' }}" step="0.01">
+                    </div>
+                </div>
+
+                <div class="text-center mt-4">
+                    <button type="submit" class="btn btn-success px-5">💾 保存</button>
+                    <a href="{{ url_for('tenants') }}" class="btn btn-secondary px-5 ms-2">取消</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
