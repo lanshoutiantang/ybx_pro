@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}{{ playlist.name }} - 在线音乐管理系统{% endblock %}
+{% block content %}
+<div class="playlist-header">
+    <div class="row align-items-center">
+        <div class="col-md-3 text-center mb-3 mb-md-0">
+            <div style="width: 200px; height: 200px; margin: 0 auto; border-radius: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center;">
+                <i class="fas fa-music" style="font-size: 4rem; color: rgba(255,255,255,0.3);"></i>
+            </div>
+        </div>
+        <div class="col-md-9">
+            <div class="playlist-info">
+                {% if playlist.is_official %}
+                <span class="badge-official mb-2 d-inline-block">官方推荐</span>
+                {% endif %}
+                <h2>{{ playlist.name }}</h2>
+                <p style="color: var(--text-secondary);">{{ playlist.description }}</p>
+                <div style="color: var(--text-muted); font-size: 0.85rem;">
+                    <span class="me-3"><i class="fas fa-music"></i> {{ playlist_songs|length }} 首歌曲</span>
+                    <span><i class="fas fa-play-circle"></i> {{ playlist.play_count }} 次播放</span>
+                    {% if playlist.creator %}
+                    <span class="ms-3"><i class="fas fa-user"></i> {{ playlist.creator.username }}</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 歌曲列表 -->
+<div class="card">
+    <div class="card-body p-0">
+        {% if playlist_songs %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th style="width: 40px;">#</th>
+                        <th>歌曲</th>
+                        <th>歌手</th>
+                        <th>流派</th>
+                        <th>播放</th>
+                        <th style="width: 60px;">时长</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ps in playlist_songs %}
+                    {% if ps.song.is_active %}
+                    <tr style="cursor: pointer;" onclick="window.location.href='{{ url_for('song_detail', song_id=ps.song.id) }}'">
+                        <td>{{ loop.index }}</td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div style="width: 32px; height: 32px; border-radius: 4px; background: linear-gradient(135deg, hsl({{ loop.index * 50 }}, 70%, 40%) 0%, hsl({{ loop.index * 50 + 60 }}, 60%, 30%) 100%); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                    <i class="fas fa-music" style="font-size: 0.8rem; color: rgba(255,255,255,0.3);"></i>
+                                </div>
+                                <div>
+                                    <div style="font-weight: 600; font-size: 0.9rem;">{{ ps.song.title }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td style="color: var(--text-secondary);">{{ ps.song.artist }}</td>
+                        <td><span class="genre-badge" style="font-size: 0.7rem;">{{ ps.song.genre }}</span></td>
+                        <td><i class="fas fa-play-circle" style="color: var(--primary-color);"></i> {{ ps.song.play_count }}</td>
+                        <td style="color: var(--text-secondary);">
+                            {% if ps.song.duration %}{{ ps.song.duration // 60 }}:{{ '%02d' % (ps.song.duration % 60) }}{% else %}--:--{% endif %}
+                        </td>
+                    </tr>
+                    {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-music" style="font-size: 2rem; color: var(--text-muted);"></i>
+            <p class="mt-2" style="color: var(--text-secondary);">歌单还没有歌曲</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

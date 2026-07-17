@@ -3,80 +3,156 @@
 {% block title %}{{ house.title }} - 房屋详情{% endblock %}
 
 {% block content %}
-<div class="container fade-in">
-    <div class="card">
-        <div class="card-header">
-            <h4>{{ house.title }}</h4>
-        </div>
-        <div class="card-body">
-            <div class="row">
-                <!-- 图片区域 -->
-                <div class="col-md-5">
-                    <div class="bg-secondary d-flex align-items-center justify-content-center rounded" style="height: 300px;">
-                        <span class="text-white fs-1">🏠</span>
+<div class="container fade-in py-4">
+    <!-- 面包屑导航 -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('index') }}">首页</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('houses') }}">房源列表</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ house.title[:20] }}{% if house.title|length > 20 %}...{% endif %}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <!-- 左侧：图片区域 -->
+        <div class="col-lg-7 mb-4">
+            <div class="card">
+                <div class="card-img-wrapper" style="height: 450px;">
+                    {% if house.image %}
+                    <img src="{{ url_for('static', filename='uploads/' + house.image) }}" class="card-img-top" alt="{{ house.title }}" style="height: 100%; object-fit: cover;">
+                    {% else %}
+                    <div class="img-placeholder w-100 h-100">
+                        <i class="bi bi-house-door" style="font-size: 5rem;"></i>
+                    </div>
+                    {% endif %}
+
+                    <!-- 价格标签 -->
+                    <div class="price-tag" style="font-size: 1.5rem; padding: 0.75rem 1.5rem;">
+                        ￥{{ "%.0f"|format(house.price) }}/月
+                    </div>
+
+                    <!-- 状态标签 -->
+                    <div class="status-badge" style="top: 1.5rem; left: 1.5rem;">
+                        {% if house.status == 'available' %}
+                        <span class="badge badge-success" style="font-size: 0.9rem; padding: 0.5rem 1rem;">可租</span>
+                        {% elif house.status == 'rented' %}
+                        <span class="badge badge-danger" style="font-size: 0.9rem; padding: 0.5rem 1rem;">已租</span>
+                        {% else %}
+                        <span class="badge badge-warning" style="font-size: 0.9rem; padding: 0.5rem 1rem;">不可租</span>
+                        {% endif %}
                     </div>
                 </div>
+            </div>
+        </div>
 
-                <!-- 信息区域 -->
-                <div class="col-md-7">
-                    <table class="table table-borderless">
-                        <tr>
-                            <th width="120">租金:</th>
-                            <td class="text-danger fw-bold fs-4">{{ house.price }} 元/月</td>
-                        </tr>
-                        <tr>
-                            <th>状态:</th>
-                            <td>
-                                {% if house.status == 'available' %}
-                                <span class="badge badge-success">可租</span>
-                                {% elif house.status == 'rented' %}
-                                <span class="badge badge-danger">已租</span>
-                                {% else %}
-                                <span class="badge badge-warning">不可租</span>
-                                {% endif %}
-                            </td>
-                        </tr>
-                        <tr>
-                            <th>地址:</th>
-                            <td>{{ house.address }}</td>
-                        </tr>
-                        <tr>
-                            <th>面积:</th>
-                            <td>{{ house.area }} 平方米</td>
-                        </tr>
-                        <tr>
-                            <th>户型:</th>
-                            <td>{{ house.room_count }}室 {{ house.hall_count }}厅 {{ house.toilet_count }}卫</td>
-                        </tr>
-                        <tr>
-                            <th>楼层:</th>
-                            <td>{{ house.floor }}</td>
-                        </tr>
-                        <tr>
-                            <th>朝向:</th>
-                            <td>{{ house.orientation }}</td>
-                        </tr>
-                        <tr>
-                            <th>房东:</th>
-                            <td>{{ house.owner_name }} ({{ house.owner_phone }})</td>
-                        </tr>
-                    </table>
+        <!-- 右侧：信息区域 -->
+        <div class="col-lg-5">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>房屋信息</h5>
                 </div>
-            </div>
+                <div class="card-body">
+                    <h3 class="fw-bold mb-3">{{ house.title }}</h3>
 
-            <!-- 详细描述 -->
-            <div class="mt-4">
-                <h5>📝 详细描述</h5>
-                <hr>
-                <p>{{ house.description or '暂无描述' }}</p>
-            </div>
+                    <div class="row g-3 mb-4">
+                        <div class="col-6">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-shrink-0">
+                                    <div class="bg-primary bg-opacity-10 rounded-circle p-3">
+                                        <i class="bi bi-door-open text-primary fs-4"></i>
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <small class="text-muted">户型</small>
+                                    <p class="mb-0 fw-bold">{{ house.room_count }}室{{ house.hall_count }}厅{{ house.toilet_count }}卫</p>
+                                </div>
+                            </div>
+                        </div>
 
-            <!-- 操作按钮 -->
-            <div class="mt-4 text-center">
-                {% if session.role == 'admin' %}
-                <a href="{{ url_for('house_edit', house_id=house.id) }}" class="btn btn-warning">✏️ 编辑房屋</a>
-                {% endif %}
-                <a href="{{ url_for('houses') }}" class="btn btn-secondary">← 返回列表</a>
+                        <div class="col-6">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-shrink-0">
+                                    <div class="bg-success bg-opacity-10 rounded-circle p-3">
+                                        <i class="bi bi-arrows-angle-expand text-success fs-4"></i>
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <small class="text-muted">面积</small>
+                                    <p class="mb-0 fw-bold">{{ house.area|int }}㎡</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-6">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-shrink-0">
+                                    <div class="bg-warning bg-opacity-10 rounded-circle p-3">
+                                        <i class="bi bi-layers text-warning fs-4"></i>
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <small class="text-muted">楼层</small>
+                                    <p class="mb-0 fw-bold">{{ house.floor or '未知' }}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-6">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-shrink-0">
+                                    <div class="bg-info bg-opacity-10 rounded-circle p-3">
+                                        <i class="bi bi-compass text-info fs-4"></i>
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <small class="text-muted">朝向</small>
+                                    <p class="mb-0 fw-bold">{{ house.orientation or '未知' }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="mb-3">
+                        <label class="text-muted small"><i class="bi bi-geo-alt me-1"></i>地址</label>
+                        <p class="mb-0 fw-bold">{{ house.address }}</p>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="text-muted small"><i class="bi bi-person me-1"></i>房东信息</label>
+                        <p class="mb-0 fw-bold">{{ house.owner_name or '未知' }} <span class="text-muted fw-normal">{{ house.owner_phone or '' }}</span></p>
+                    </div>
+
+                    {% if house.description %}
+                    <hr>
+                    <div class="mb-3">
+                        <label class="text-muted small"><i class="bi bi-file-text me-1"></i>详细描述</label>
+                        <p class="mb-0">{{ house.description }}</p>
+                    </div>
+                    {% endif %}
+
+                    <hr>
+
+                    <!-- 操作按钮 -->
+                    <div class="d-grid gap-2">
+                        {% if session.tenant_id and house.status == 'available' %}
+                        <a href="{{ url_for('appointment_create', house_id=house.id) }}" class="btn btn-success btn-lg">
+                            <i class="bi bi-calendar-check me-2"></i>预约看房
+                        </a>
+                        {% endif %}
+
+                        {% if session.role == 'admin' %}
+                        <a href="{{ url_for('house_edit', house_id=house.id) }}" class="btn btn-warning">
+                            <i class="bi bi-pencil me-2"></i>编辑房屋
+                        </a>
+                        {% endif %}
+
+                        <a href="{{ url_for('houses') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-2"></i>返回列表
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

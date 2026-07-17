@@ -3,24 +3,32 @@
 {% block title %}房屋列表 - 房屋租赁管理系统{% endblock %}
 
 {% block content %}
-<div class="container fade-in">
-    <div class="card">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <span>🏠 房屋管理</span>
-            {% if session.role == 'admin' %}
-            <a href="{{ url_for('house_add') }}" class="btn btn-sm btn-light">➕ 添加房屋</a>
-            {% endif %}
+<div class="container fade-in py-4">
+    <!-- 页面标题 -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold"><i class="bi bi-houses me-2"></i>房源列表</h2>
+            <p class="text-muted mb-0">共找到 {{ houses.total }} 套优质房源</p>
         </div>
+        {% if session.role == 'admin' %}
+        <a href="{{ url_for('house_add') }}" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-1"></i>添加房屋
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- 搜索和筛选 -->
+    <div class="card mb-4">
         <div class="card-body">
-            <!-- 搜索和筛选 -->
-            <form method="GET" class="row mb-4">
+            <form method="GET" class="row g-3">
                 <div class="col-md-6">
                     <div class="search-box">
+                        <i class="bi bi-search search-icon"></i>
                         <input type="text" name="search" class="form-control" placeholder="搜索房屋标题或地址..." value="{{ search }}">
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <select name="status" class="form-control">
+                    <select name="status" class="form-select">
                         <option value="">全部状态</option>
                         <option value="available" {{ 'selected' if status_filter == 'available' }}>可租</option>
                         <option value="rented" {{ 'selected' if status_filter == 'rented' }}>已租</option>
@@ -28,89 +36,143 @@
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <button type="submit" class="btn btn-primary w-100">🔍 搜索</button>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-search me-1"></i>搜索
+                    </button>
                 </div>
             </form>
-
-            <!-- 表格 -->
-            <div class="table-responsive">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>标题</th>
-                            <th>地址</th>
-                            <th>租金(元/月)</th>
-                            <th>户型</th>
-                            <th>面积(㎡)</th>
-                            <th>状态</th>
-                            <th>房东</th>
-                            <th>操作</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for house in houses.items %}
-                        <tr>
-                            <td>{{ house.id }}</td>
-                            <td>{{ house.title }}</td>
-                            <td>{{ house.address }}</td>
-                            <td class="text-danger fw-bold">{{ house.price }}</td>
-                            <td>{{ house.room_count }}室{{ house.hall_count }}厅{{ house.toilet_count }}卫</td>
-                            <td>{{ house.area }}</td>
-                            <td>
-                                {% if house.status == 'available' %}
-                                <span class="badge badge-success">可租</span>
-                                {% elif house.status == 'rented' %}
-                                <span class="badge badge-danger">已租</span>
-                                {% else %}
-                                <span class="badge badge-warning">不可租</span>
-                                {% endif %}
-                            </td>
-                            <td>{{ house.owner_name }}</td>
-                            <td>
-                                <a href="{{ url_for('house_detail', house_id=house.id) }}" class="btn btn-sm btn-info">查看</a>
-                                {% if session.role == 'admin' %}
-                                <a href="{{ url_for('house_edit', house_id=house.id) }}" class="btn btn-sm btn-warning">编辑</a>
-                                <form method="POST" action="{{ url_for('house_delete', house_id=house.id) }}" style="display:inline;">
-                                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('确定要删除吗?')">删除</button>
-                                </form>
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% else %}
-                        <tr>
-                            <td colspan="9" class="text-center">暂无房屋数据</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- 分页 -->
-            {% if houses.pages > 1 %}
-            <nav>
-                <ul class="pagination justify-content-center">
-                    {% if houses.has_prev %}
-                    <li class="page-item">
-                        <a class="page-link" href="{{ url_for('houses', page=houses.prev_num, search=search, status=status_filter) }}">上一页</a>
-                    </li>
-                    {% endif %}
-
-                    {% for p in range(1, houses.pages + 1) %}
-                    <li class="page-item {{ 'active' if p == houses.page else '' }}">
-                        <a class="page-link" href="{{ url_for('houses', page=p, search=search, status=status_filter) }}">{{ p }}</a>
-                    </li>
-                    {% endfor %}
-
-                    {% if houses.has_next %}
-                    <li class="page-item">
-                        <a class="page-link" href="{{ url_for('houses', page=houses.next_num, search=search, status=status_filter) }}">下一页</a>
-                    </li>
-                    {% endif %}
-                </ul>
-            </nav>
-            {% endif %}
         </div>
     </div>
+
+    <!-- 房屋卡片网格 -->
+    <div class="row g-4">
+        {% for house in houses.items %}
+        <div class="col-lg-4 col-md-6">
+            <div class="card house-card h-100">
+                <!-- 房屋图片 -->
+                <div class="card-img-wrapper">
+                    {% if house.image %}
+                    <img src="{{ url_for('static', filename='uploads/' + house.image) }}" class="card-img-top" alt="{{ house.title }}">
+                    {% else %}
+                    <div class="img-placeholder w-100 h-100">
+                        <i class="bi bi-house-door"></i>
+                    </div>
+                    {% endif %}
+
+                    <!-- 价格标签 -->
+                    <div class="price-tag">￥{{ "%.0f"|format(house.price) }}</div>
+
+                    <!-- 状态标签 -->
+                    <div class="status-badge">
+                        {% if house.status == 'available' %}
+                        <span class="badge badge-success">可租</span>
+                        {% elif house.status == 'rented' %}
+                        <span class="badge badge-danger">已租</span>
+                        {% else %}
+                        <span class="badge badge-warning">不可租</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    <h5 class="card-title">{{ house.title }}</h5>
+
+                    <div class="house-info">
+                        <span class="house-info-item">
+                            <i class="bi bi-geo-alt"></i>{{ house.address[:20] }}{% if house.address|length > 20 %}...{% endif %}
+                        </span>
+                    </div>
+
+                    <div class="house-info">
+                        <span class="house-info-item">
+                            <i class="bi bi-door-open"></i>{{ house.room_count }}室{{ house.hall_count }}厅
+                        </span>
+                        <span class="house-info-item">
+                            <i class="bi bi-arrows-angle-expand"></i>{{ house.area|int }}㎡
+                        </span>
+                        <span class="house-info-item">
+                            <i class="bi bi-layers"></i>{{ house.floor }}
+                        </span>
+                    </div>
+
+                    <p class="card-text text-muted">{{ house.description[:60] if house.description else '暂无描述' }}{% if house.description and house.description|length > 60 %}...{% endif %}</p>
+
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <small class="text-muted">
+                            <i class="bi bi-person me-1"></i>{{ house.owner_name or '未知' }}
+                        </small>
+                        <div class="btn-group">
+                            <a href="{{ url_for('house_detail', house_id=house.id) }}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-eye"></i> 查看
+                            </a>
+                            {% if session.role == 'admin' %}
+                            <a href="{{ url_for('house_edit', house_id=house.id) }}" class="btn btn-sm btn-outline-warning">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <form method="POST" action="{{ url_for('house_delete', house_id=house.id) }}" class="d-inline" onsubmit="return confirm('确定要删除吗?')">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12">
+            <div class="empty-state">
+                <div class="icon">🏠</div>
+                <h5>暂无房屋数据</h5>
+                <p>快来添加第一套房源吧</p>
+                {% if session.role == 'admin' %}
+                <a href="{{ url_for('house_add') }}" class="btn btn-primary">添加房屋</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- 分页 -->
+    {% if houses.pages > 1 %}
+    <nav class="mt-5">
+        <ul class="pagination justify-content-center">
+            {% if houses.has_prev %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('houses', page=houses.prev_num, search=search, status=status_filter) }}">
+                    <i class="bi bi-chevron-left"></i> 上一页
+                </a>
+            </li>
+            {% endif %}
+
+            {% for p in houses.iter_pages(left_edge=2, left_current=2, right_current=3, right_edge=2) %}
+                {% if p %}
+                    {% if p == houses.page %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ p }}</span>
+                    </li>
+                    {% else %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('houses', page=p, search=search, status=status_filter) }}">{{ p }}</a>
+                    </li>
+                    {% endif %}
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">...</span>
+                </li>
+                {% endif %}
+            {% endfor %}
+
+            {% if houses.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('houses', page=houses.next_num, search=search, status=status_filter) }}">
+                    下一页 <i class="bi bi-chevron-right"></i>
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
 </div>
 {% endblock %}

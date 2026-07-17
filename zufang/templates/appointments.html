@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+
+{% block title %}预约管理 - 房屋租赁管理系统{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-calendar-check me-2"></i>预约管理</h2>
+    </div>
+
+    <!-- 状态筛选 -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="GET" action="{{ url_for('appointments') }}" class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">预约状态</label>
+                    <select name="status" class="form-select">
+                        <option value="">全部状态</option>
+                        <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>待确认</option>
+                        <option value="confirmed" {% if status_filter == 'confirmed' %}selected{% endif %}>已确认</option>
+                        <option value="cancelled" {% if status_filter == 'cancelled' %}selected{% endif %}>已取消</option>
+                        <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>已完成</option>
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary">筛选</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 预约列表 -->
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>租客</th>
+                            <th>房源</th>
+                            <th>预约日期</th>
+                            <th>时间段</th>
+                            <th>状态</th>
+                            <th>备注</th>
+                            <th>创建时间</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for appointment in appointments.items %}
+                        <tr>
+                            <td>{{ appointment.id }}</td>
+                            <td>{{ appointment.tenant.name }}</td>
+                            <td>{{ appointment.house.title }}</td>
+                            <td>{{ appointment.appointment_date }}</td>
+                            <td>{{ appointment.appointment_time }}</td>
+                            <td>
+                                {% if appointment.status == 'pending' %}
+                                <span class="badge bg-warning">待确认</span>
+                                {% elif appointment.status == 'confirmed' %}
+                                <span class="badge bg-success">已确认</span>
+                                {% elif appointment.status == 'cancelled' %}
+                                <span class="badge bg-secondary">已取消</span>
+                                {% elif appointment.status == 'completed' %}
+                                <span class="badge bg-info">已完成</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ appointment.remark or '-' }}</td>
+                            <td>{{ appointment.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                            <td>
+                                {% if appointment.status == 'pending' %}
+                                <form method="POST" action="{{ url_for('appointment_confirm', appointment_id=appointment.id) }}" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-success">确认</button>
+                                </form>
+                                {% endif %}
+                                {% if appointment.status in ['pending', 'confirmed'] %}
+                                <form method="POST" action="{{ url_for('appointment_cancel', appointment_id=appointment.id) }}" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-secondary">取消</button>
+                                </form>
+                                {% endif %}
+                                {% if appointment.status == 'confirmed' %}
+                                <form method="POST" action="{{ url_for('appointment_complete', appointment_id=appointment.id) }}" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-info">完成</button>
+                                </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="9" class="text-center py-4 text-muted">暂无预约记录</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 分页 -->
+            {% if appointments.pages > 1 %}
+            <nav class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if appointments.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('appointments', page=appointments.prev_num, status=status_filter) }}">上一页</a>
+                    </li>
+                    {% endif %}
+
+                    {% for page_num in appointments.iter_pages(left_edge=2, left_current=2, right_current=3, right_edge=2) %}
+                        {% if page_num %}
+                            {% if page_num == appointments.page %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ page_num }}</span>
+                            </li>
+                            {% else %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('appointments', page=page_num, status=status_filter) }}">{{ page_num }}</a>
+                            </li>
+                            {% endif %}
+                        {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">...</span>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if appointments.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('appointments', page=appointments.next_num, status=status_filter) }}">下一页</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

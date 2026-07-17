@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% block title %}管理控制台 - 在线音乐管理系统{% endblock %}
+{% block content %}
+<div class="section-title">
+    <i class="fas fa-cog"></i> 管理控制台
+</div>
+
+<!-- 统计卡片 -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-music"></i></div>
+            <div class="stat-number">{{ total_songs }}</div>
+            <div class="stat-label">总歌曲 ({{ active_songs }} 上架)</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-users"></i></div>
+            <div class="stat-number">{{ total_users }}</div>
+            <div class="stat-label">注册用户</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-list"></i></div>
+            <div class="stat-number">{{ total_playlists }}</div>
+            <div class="stat-label">歌单数量</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-play-circle"></i></div>
+            <div class="stat-number">{{ total_play_count }}</div>
+            <div class="stat-label">总播放次数</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- 热门歌曲排行 -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h5><i class="fas fa-fire me-2" style="color: var(--primary-color);"></i>热门歌曲排行</h5>
+                <hr style="border-color: var(--border-color);">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>歌曲</th>
+                                <th>歌手</th>
+                                <th>播放</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for song in hot_songs %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td>{{ song.title }}</td>
+                                <td style="color: var(--text-secondary);">{{ song.artist }}</td>
+                                <td><i class="fas fa-play-circle" style="color: var(--primary-color);"></i> {{ song.play_count }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 流派统计 -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h5><i class="fas fa-chart-pie me-2" style="color: var(--primary-color);"></i>流派分布</h5>
+                <hr style="border-color: var(--border-color);">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>流派</th>
+                                <th>数量</th>
+                                <th>占比</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for genre, count in genres_data %}
+                            <tr>
+                                <td><span class="genre-badge">{{ genre }}</span></td>
+                                <td>{{ count }}</td>
+                                <td>
+                                    <div class="progress" style="height: 6px; background: var(--border-color);">
+                                        <div class="progress-bar" style="width: {{ (count / total_songs * 100) if total_songs > 0 else 0 }}%; background: var(--primary-color);"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mt-4 d-flex gap-2">
+    <a href="{{ url_for('admin_songs') }}" class="btn btn-primary">
+        <i class="fas fa-music me-1"></i> 歌曲管理
+    </a>
+    <a href="{{ url_for('admin_users') }}" class="btn btn-outline-primary">
+        <i class="fas fa-users me-1"></i> 用户管理
+    </a>
+    <a href="{{ url_for('admin_playlists') }}" class="btn btn-outline-primary">
+        <i class="fas fa-list me-1"></i> 歌单管理
+    </a>
+    <a href="{{ url_for('admin_statistics') }}" class="btn btn-outline-light">
+        <i class="fas fa-chart-bar me-1"></i> 数据统计
+    </a>
+</div>
+{% endblock %}

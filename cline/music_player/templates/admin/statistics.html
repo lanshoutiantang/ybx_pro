@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block title %}数据统计 - 在线音乐管理系统{% endblock %}
+{% block content %}
+<div class="section-title">
+    <i class="fas fa-chart-bar"></i> 数据统计
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-music"></i></div>
+            <div class="stat-number">{{ total_songs }}</div>
+            <div class="stat-label">活跃歌曲</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-users"></i></div>
+            <div class="stat-number">{{ total_users }}</div>
+            <div class="stat-label">注册用户</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-play-circle"></i></div>
+            <div class="stat-number">{{ total_play_count }}</div>
+            <div class="stat-label">总播放次数</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- 流派统计 -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h5><i class="fas fa-chart-pie me-2" style="color: var(--primary-color);"></i>各流派歌曲数量</h5>
+                <hr style="border-color: var(--border-color);">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>流派</th>
+                                <th>歌曲数量</th>
+                                <th>总播放次数</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for genre, count, total_plays in genre_stats %}
+                            <tr>
+                                <td><span class="genre-badge">{{ genre }}</span></td>
+                                <td>{{ count }}</td>
+                                <td><i class="fas fa-play-circle" style="color: var(--primary-color);"></i> {{ total_plays or 0 }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 每月新增 -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h5><i class="fas fa-chart-line me-2" style="color: var(--primary-color);"></i>每月新增歌曲</h5>
+                <hr style="border-color: var(--border-color);">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>月份</th>
+                                <th>新增数量</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in monthly_songs %}
+                            <tr>
+                                <td>{{ item.month }}</td>
+                                <td>{{ item.count }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mt-2">
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-list"></i></div>
+            <div class="stat-number">{{ total_playlists }}</div>
+            <div class="stat-label">歌单总数</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-comment"></i></div>
+            <div class="stat-number">{{ total_reviews }}</div>
+            <div class="stat-label">评论总数</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-star"></i></div>
+            <div class="stat-number">{{ genre_stats|length }}</div>
+            <div class="stat-label">流派数量</div>
+        </div>
+    </div>
+</div>
+{% endblock %}

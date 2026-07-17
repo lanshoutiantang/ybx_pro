@@ -3,92 +3,157 @@
 {% block title %}首页 - 房屋租赁管理系统{% endblock %}
 
 {% block content %}
-<div class="container fade-in">
+<!-- 英雄区域 -->
+<section class="hero-section">
+    <div class="container text-center">
+        <h1 class="hero-title">🏠 找到您的理想居所</h1>
+        <p class="hero-subtitle">专业房屋租赁服务，为您提供优质的居住体验</p>
+        <div class="d-flex justify-content-center gap-3">
+            <a href="{{ url_for('houses') }}" class="btn btn-light btn-lg px-4">
+                <i class="bi bi-search me-2"></i>浏览房源
+            </a>
+            {% if not session.user_id and not session.tenant_id %}
+            <a href="{{ url_for('tenant_register') }}" class="btn btn-outline-light btn-lg px-4">
+                <i class="bi bi-person-plus me-2"></i>注册租客
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<div class="container fade-in py-4">
     <!-- 统计卡片 -->
-    <div class="row mb-5">
-        <div class="col-md-4">
-            <div class="card stat-card">
+    <div class="row g-4 mb-5">
+        <div class="col-md-3">
+            <div class="card stat-card h-100">
                 <div class="stat-icon">🏠</div>
                 <div class="stat-number">{{ total_houses }}</div>
                 <div class="stat-label">房屋总数</div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card stat-card">
+        <div class="col-md-3">
+            <div class="card stat-card h-100">
                 <div class="stat-icon">👥</div>
                 <div class="stat-number">{{ total_tenants }}</div>
                 <div class="stat-label">租客总数</div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card stat-card">
-                <div class="stat-icon">💰</div>
-                <div class="stat-number">{{ total_houses }}</div>
-                <div class="stat-label">在租房屋</div>
+        <div class="col-md-3">
+            <div class="card stat-card h-100">
+                <div class="stat-icon">✅</div>
+                <div class="stat-number">{{ available_houses }}</div>
+                <div class="stat-label">可租房源</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stat-card h-100">
+                <div class="stat-icon">📅</div>
+                <div class="stat-number">{{ pending_appointments }}</div>
+                <div class="stat-label">待确认预约</div>
             </div>
         </div>
     </div>
 
     <!-- 最新房屋 -->
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <span>🏠 最新房屋</span>
-                    <a href="{{ url_for('houses') }}" class="btn btn-sm btn-light">查看更多</a>
-                </div>
-                <div class="card-body">
-                    {% if houses %}
-                    <div class="row">
-                        {% for house in houses %}
-                        <div class="col-md-4 mb-4">
-                            <div class="card house-card">
-                                <div class="position-relative">
-                                    <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center" style="height: 150px;">
-                                        <span class="text-white fs-1">🏠</span>
-                                    </div>
-                                    <span class="badge bg-danger position-absolute top-0 end-0 m-2">{{ house.price }}元/月</span>
-                                    <span class="badge bg-success position-absolute top-0 start-0 m-2">{{ '可租' if house.status == 'available' else '已租' }}</span>
-                                </div>
-                                <div class="card-body">
-                                    <h5 class="card-title">{{ house.title }}</h5>
-                                    <p class="text-muted small">📍 {{ house.address }}</p>
-                                    <div class="d-flex justify-content-between small text-secondary">
-                                        <span>{{ house.room_count }}室{{ house.hall_count }}厅</span>
-                                        <span>{{ house.area }}㎡</span>
-                                        <span>{{ house.floor }}</span>
-                                    </div>
-                                    <a href="{{ url_for('house_detail', house_id=house.id) }}" class="btn btn-primary btn-sm w-100 mt-3">查看详情</a>
-                                </div>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="fw-bold"><i class="bi bi-stars me-2"></i>精选房源</h3>
+        <a href="{{ url_for('houses') }}" class="btn btn-outline-primary">
+            查看更多 <i class="bi bi-arrow-right"></i>
+        </a>
+    </div>
+
+    {% if houses %}
+    <div class="row g-4">
+        {% for house in houses %}
+        <div class="col-lg-4 col-md-6">
+            <div class="card house-card h-100">
+                <div class="card-img-wrapper">
+                    {% if house.image %}
+                    <img src="{{ url_for('static', filename='uploads/' + house.image) }}" class="card-img-top" alt="{{ house.title }}">
                     {% else %}
-                    <div class="empty-state">
-                        <div class="icon">🏚️</div>
-                        <p>暂无房屋信息</p>
-                        {% if session.role == 'admin' %}
-                        <a href="{{ url_for('house_add') }}" class="btn btn-primary">添加房屋</a>
-                        {% endif %}
+                    <div class="img-placeholder w-100 h-100">
+                        <i class="bi bi-house-door"></i>
                     </div>
                     {% endif %}
+
+                    <div class="price-tag">￥{{ "%.0f"|format(house.price) }}</div>
+
+                    <div class="status-badge">
+                        {% if house.status == 'available' %}
+                        <span class="badge badge-success">可租</span>
+                        {% else %}
+                        <span class="badge badge-danger">已租</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    <h5 class="card-title">{{ house.title }}</h5>
+
+                    <div class="house-info mb-2">
+                        <span class="house-info-item">
+                            <i class="bi bi-geo-alt"></i>{{ house.address[:20] }}{% if house.address|length > 20 %}...{% endif %}
+                        </span>
+                    </div>
+
+                    <div class="house-info">
+                        <span class="house-info-item">
+                            <i class="bi bi-door-open"></i>{{ house.room_count }}室{{ house.hall_count }}厅
+                        </span>
+                        <span class="house-info-item">
+                            <i class="bi bi-arrows-angle-expand"></i>{{ house.area|int }}㎡
+                        </span>
+                        <span class="house-info-item">
+                            <i class="bi bi-layers"></i>{{ house.floor }}
+                        </span>
+                    </div>
+
+                    <a href="{{ url_for('house_detail', house_id=house.id) }}" class="btn btn-primary w-100 mt-3">
+                        <i class="bi bi-eye me-1"></i>查看详情
+                    </a>
                 </div>
             </div>
         </div>
+        {% endfor %}
     </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="icon">🏚️</div>
+        <h5>暂无房屋信息</h5>
+        <p>快来添加第一套房源吧</p>
+        {% if session.role == 'admin' %}
+        <a href="{{ url_for('house_add') }}" class="btn btn-primary">添加房屋</a>
+        {% endif %}
+    </div>
+    {% endif %}
 
     <!-- 快捷操作 -->
     {% if session.user_id %}
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">⚡ 快捷操作</div>
-                <div class="card-body text-center">
-                    <a href="{{ url_for('house_add') }}" class="btn btn-primary mx-2">➕ 添加房屋</a>
-                    <a href="{{ url_for('tenant_add') }}" class="btn btn-success mx-2">👤 添加租客</a>
-                    <a href="{{ url_for('houses') }}" class="btn btn-info mx-2">📋 房屋列表</a>
-                    <a href="{{ url_for('tenants') }}" class="btn btn-warning mx-2">👥 租客列表</a>
+    <div class="card mt-5">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="bi bi-lightning me-2"></i>快捷操作</h5>
+        </div>
+        <div class="card-body">
+            <div class="row g-3 text-center">
+                <div class="col-md-3">
+                    <a href="{{ url_for('house_add') }}" class="btn btn-outline-primary w-100 py-3">
+                        <i class="bi bi-plus-lg d-block mb-2 fs-4"></i>添加房屋
+                    </a>
+                </div>
+                <div class="col-md-3">
+                    <a href="{{ url_for('tenant_add') }}" class="btn btn-outline-success w-100 py-3">
+                        <i class="bi bi-person-plus d-block mb-2 fs-4"></i>添加租客
+                    </a>
+                </div>
+                <div class="col-md-3">
+                    <a href="{{ url_for('appointments') }}" class="btn btn-outline-info w-100 py-3">
+                        <i class="bi bi-calendar-check d-block mb-2 fs-4"></i>预约管理
+                    </a>
+                </div>
+                <div class="col-md-3">
+                    <a href="{{ url_for('statistics') }}" class="btn btn-outline-warning w-100 py-3">
+                        <i class="bi bi-graph-up d-block mb-2 fs-4"></i>统计报表
+                    </a>
                 </div>
             </div>
         </div>

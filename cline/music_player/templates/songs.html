@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block title %}音乐库 - 在线音乐管理系统{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="section-title mb-0">
+        <i class="fas fa-headphones"></i> 音乐库
+    </h3>
+    <div class="d-flex gap-2">
+        <div class="btn-group">
+            <a href="{{ url_for('songs', sort='new', genre=genre_filter) }}" class="btn btn-sm {% if sort == 'new' %}btn-primary{% else %}btn-dark{% endif %}">
+                <i class="fas fa-clock"></i> 最新
+            </a>
+            <a href="{{ url_for('songs', sort='hot', genre=genre_filter) }}" class="btn btn-sm {% if sort == 'hot' %}btn-primary{% else %}btn-dark{% endif %}">
+                <i class="fas fa-fire"></i> 最热
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- 流派筛选 -->
+<div class="mb-4 d-flex flex-wrap gap-2">
+    {% for g in genres %}
+    <a href="{{ url_for('songs', genre=g if g != '全部' else '', sort=sort) }}"
+       class="genre-badge text-decoration-none {% if (g == '全部' and not genre_filter) or g == genre_filter %}active{% endif %}"
+       style="{% if (g == '全部' and not genre_filter) or g == genre_filter %}background: var(--primary-color); color: #fff;{% endif %}">
+        {{ g }}
+    </a>
+    {% endfor %}
+</div>
+
+<!-- 歌曲列表 -->
+{% if songs.items %}
+<div class="row g-3">
+    {% for song in songs.items %}
+    <div class="col-6 col-md-3">
+        <div class="card song-card h-100" data-song-id="{{ song.id }}">
+            <div class="card-body">
+                <div class="song-cover d-flex align-items-center justify-content-center" style="background: linear-gradient(135deg, hsl({{ loop.index * 50 }}, 70%, 40%) 0%, hsl({{ loop.index * 50 + 60 }}, 60%, 30%) 100%);">
+                    <i class="fas fa-music" style="font-size: 2.5rem; color: rgba(255,255,255,0.3);"></i>
+                </div>
+                <div class="play-overlay">
+                    <button class="play-btn" onclick="event.stopPropagation(); playSong({{ song.id }})">
+                        <i class="fas fa-play"></i>
+                    </button>
+                </div>
+                <div class="song-title">{{ song.title }}</div>
+                <div class="song-artist">{{ song.artist }}</div>
+                <div class="d-flex justify-content-between align-items-center mt-2">
+                    <span class="genre-badge" style="font-size: 0.7rem;">{{ song.genre }}</span>
+                    <small style="color: var(--text-muted);">
+                        <i class="fas fa-play-circle me-1"></i>{{ song.play_count }}
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- 分页 -->
+{% if songs.pages > 1 %}
+<nav class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if songs.has_prev %}
+        <li class="page-item">
+            <a class="page-link" href="{{ url_for('songs', page=songs.prev_num, genre=genre_filter, sort=sort) }}">
+                <i class="fas fa-chevron-left"></i>
+            </a>
+        </li>
+        {% endif %}
+        {% for page_num in songs.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+            {% if page_num %}
+            <li class="page-item {% if page_num == songs.page %}active{% endif %}">
+                <a class="page-link" href="{{ url_for('songs', page=page_num, genre=genre_filter, sort=sort) }}">{{ page_num }}</a>
+            </li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">...</span></li>
+            {% endif %}
+        {% endfor %}
+        {% if songs.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="{{ url_for('songs', page=songs.next_num, genre=genre_filter, sort=sort) }}">
+                <i class="fas fa-chevron-right"></i>
+            </a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% else %}
+<div class="text-center py-5">
+    <i class="fas fa-music" style="font-size: 3rem; color: var(--text-muted);"></i>
+    <p class="mt-3" style="color: var(--text-secondary);">暂无歌曲数据</p>
+</div>
+{% endif %}
+{% endblock %}

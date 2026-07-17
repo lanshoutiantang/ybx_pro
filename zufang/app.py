@@ -5,7 +5,9 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
 from functools import wraps
+from datetime import datetime, date
 import os
 
 app = Flask(__name__)
@@ -13,7 +15,39 @@ app.config['SECRET_KEY'] = 'zufang-secret-key-2024'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///zufang.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+# 文件上传配置
+UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static', 'uploads')
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 最大16MB
+
 db = SQLAlchemy(app)
+
+
+def allowed_file(filename):
+    """检查文件扩展名是否允许"""
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+def save_image(file):
+    """保存上传的图片"""
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        # 添加时间戳避免重名
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        filename = f"{timestamp}_{filename}"
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(filepath)
+        return filename
+    return None
+
+
+def delete_image(filename):
+    """删除图片文件"""
+    if filename:
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        if os.path.exists(filepath):
+            os.remove(filepath)
 
 
 # ==================== 数据模型 ====================
@@ -106,6 +140,26 @@ class Contract(db.Model):
         return f'<Contract {self.contract_no}>'
 
 
+class Appointment(db.Model):
+    """预约看房表"""
+    __tablename__ = 'appointments'
+    id = db.Column(db.Integer, primary_key=True)
+    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id'), nullable=False)
+    house_id = db.Column(db.Integer, db.ForeignKey('houses.id'), nullable=False)
+    appointment_date = db.Column(db.Date, nullable=False)  # 预约日期
+    appointment_time = db.Column(db.String(20), nullable=False)  # 预约时间段
+    status = db.Column(db.String(20), default='pending')  # pending, confirmed, cancelled, completed
+    remark = db.Column(db.Text)  # 备注
+    created_at = db.Column(db.DateTime, default=db.func.now())
+    updated_at = db.Column(db.DateTime, default=db.func.now(), onupdate=db.func.now())
+
+    tenant = db.relationship('Tenant', backref=db.backref('appointments', lazy=True))
+    house = db.relationship('House', backref=db.backref('appointments', lazy=True))
+
+    def __repr__(self):
+        return f'<Appointment {self.id}>'
+
+
 # ==================== 辅助函数 ====================
 
 def login_required(f):
@@ -152,10 +206,14 @@ def index():
     houses = House.query.filter_by(status='available').order_by(House.created_at.desc()).limit(6).all()
     total_houses = House.query.count()
     total_tenants = Tenant.query.count()
+    available_houses = House.query.filter_by(status='available').count()
+    pending_appointments = Appointment.query.filter_by(status='pending').count()
     return render_template('index.html',
                          houses=houses,
                          total_houses=total_houses,
-                         total_tenants=total_tenants)
+                         total_tenants=total_tenants,
+                         available_houses=available_houses,
+                         pending_appointments=pending_appointments)
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -316,6 +374,15 @@ def house_add():
             owner_phone=request.form.get('owner_phone'),
             status=request.form.get('status', 'available')
         )
+
+        # 处理图片上传
+        if 'image' in request.files:
+            file = request.files['image']
+            if file.filename:
+                filename = save_image(file)
+                if filename:
+                    house.image = filename
+
         db.session.add(house)
         db.session.commit()
         flash('房屋添加成功', 'success')
@@ -344,6 +411,23 @@ def house_edit(house_id):
         house.owner_name = request.form.get('owner_name')
         house.owner_phone = request.form.get('owner_phone')
         house.status = request.form.get('status', 'available')
+
+        # 处理图片删除
+        if request.form.get('delete_image') and house.image:
+            delete_image(house.image)
+            house.image = None
+
+        # 处理图片上传
+        if 'image' in request.files:
+            file = request.files['image']
+            if file.filename:
+                # 删除旧图片
+                if house.image:
+                    delete_image(house.image)
+                # 保存新图片
+                filename = save_image(file)
+                if filename:
+                    house.image = filename
 
         db.session.commit()
         flash('房屋信息已更新', 'success')
@@ -459,6 +543,10 @@ def statistics():
     total_tenants = Tenant.query.count()
     active_contracts = Contract.query.filter_by(status='active').count()
 
+    # 预约统计
+    pending_appointments = Appointment.query.filter_by(status='pending').count()
+    confirmed_appointments = Appointment.query.filter_by(status='confirmed').count()
+
     # 收入统计（简化）
     total_rent = db.session.query(db.func.sum(Tenant.rent_amount)).scalar() or 0
 
@@ -468,7 +556,124 @@ def statistics():
                          rented_houses=rented_houses,
                          total_tenants=total_tenants,
                          active_contracts=active_contracts,
+                         pending_appointments=pending_appointments,
+                         confirmed_appointments=confirmed_appointments,
                          total_rent=total_rent)
+
+
+# ==================== 路由 - 预约看房系统 ====================
+
+@app.route('/appointments')
+@login_required
+def appointments():
+    """预约列表（管理员视图）"""
+    page = request.args.get('page', 1, type=int)
+    per_page = 10
+    status_filter = request.args.get('status', '')
+
+    query = Appointment.query
+    if status_filter:
+        query = query.filter_by(status=status_filter)
+
+    appointments = query.order_by(Appointment.created_at.desc()).paginate(
+        page=page, per_page=per_page, error_out=False
+    )
+
+    return render_template('appointments.html', appointments=appointments, status_filter=status_filter)
+
+
+@app.route('/tenant/appointments')
+@tenant_required
+def tenant_appointments():
+    """租客的预约列表"""
+    tenant_id = session.get('tenant_id')
+    appointments = Appointment.query.filter_by(tenant_id=tenant_id).order_by(Appointment.created_at.desc()).all()
+    return render_template('tenant_appointments.html', appointments=appointments)
+
+
+@app.route('/appointment/create/<int:house_id>', methods=['GET', 'POST'])
+@tenant_required
+def appointment_create(house_id):
+    """创建预约"""
+    house = House.query.get_or_404(house_id)
+    tenant_id = session.get('tenant_id')
+
+    if request.method == 'POST':
+        appointment_date_str = request.form.get('appointment_date')
+        appointment_time = request.form.get('appointment_time')
+        remark = request.form.get('remark', '')
+
+        # 将字符串转换为 date 对象
+        appointment_date = datetime.strptime(appointment_date_str, '%Y-%m-%d').date()
+
+        # 检查该时间段是否已被预约
+        existing = Appointment.query.filter_by(
+            house_id=house_id,
+            appointment_date=appointment_date,
+            appointment_time=appointment_time,
+            status='confirmed'
+        ).first()
+
+        if existing:
+            flash('该时间段已被预约，请选择其他时间', 'warning')
+            return render_template('appointment_form.html', house=house)
+
+        appointment = Appointment(
+            tenant_id=tenant_id,
+            house_id=house_id,
+            appointment_date=appointment_date,
+            appointment_time=appointment_time,
+            remark=remark,
+            status='pending'
+        )
+        db.session.add(appointment)
+        db.session.commit()
+
+        flash('预约申请已提交，等待房东确认', 'success')
+        return redirect(url_for('tenant_appointments'))
+
+    return render_template('appointment_form.html', house=house)
+
+
+@app.route('/appointment/confirm/<int:appointment_id>', methods=['POST'])
+@login_required
+def appointment_confirm(appointment_id):
+    """确认预约（管理员）"""
+    appointment = Appointment.query.get_or_404(appointment_id)
+    appointment.status = 'confirmed'
+    db.session.commit()
+    flash('预约已确认', 'success')
+    return redirect(url_for('appointments'))
+
+
+@app.route('/appointment/cancel/<int:appointment_id>', methods=['POST'])
+def appointment_cancel(appointment_id):
+    """取消预约"""
+    appointment = Appointment.query.get_or_404(appointment_id)
+
+    # 检查权限：管理员或预约的租客本人
+    if session.get('role') == 'admin' or session.get('tenant_id') == appointment.tenant_id:
+        appointment.status = 'cancelled'
+        db.session.commit()
+        flash('预约已取消', 'info')
+    else:
+        flash('无权操作', 'danger')
+
+    if session.get('role') == 'admin':
+        return redirect(url_for('appointments'))
+    else:
+        return redirect(url_for('tenant_appointments'))
+
+
+@app.route('/appointment/complete/<int:appointment_id>', methods=['POST'])
+@login_required
+def appointment_complete(appointment_id):
+    """完成预约（管理员）"""
+    appointment = Appointment.query.get_or_404(appointment_id)
+    appointment.status = 'completed'
+    db.session.commit()
+    flash('预约已标记为完成', 'success')
+    return redirect(url_for('appointments'))
 
 
 # ==================== 初始化数据 ====================

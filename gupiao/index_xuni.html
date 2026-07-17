@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>五大行 · 高股息每日监控</title>
+    <!-- Chart.js CDN (轻量可视化) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <!-- Font Awesome 图标库 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+        body {
+            background: #f4f7fc;
+            min-height: 100vh;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .dashboard {
+            max-width: 1440px;
+            width: 100%;
+        }
+        /* 头部 */
+        .header {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 28px;
+            background: white;
+            padding: 18px 28px;
+            border-radius: 28px;
+            box-shadow: 0 8px 20px rgba(0,20,50,0.04);
+        }
+        .header h1 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #0b1e3a;
+            letter-spacing: -0.3px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .header h1 i {
+            color: #d4a13e;
+            font-size: 1.9rem;
+        }
+        .live-badge {
+            background: #eef3fa;
+            padding: 8px 18px;
+            border-radius: 60px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #1e3a6b;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.02);
+        }
+        .live-badge i {
+            color: #2a7a3e;
+            font-size: 0.8rem;
+        }
+        .live-badge .dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            background: #2b9e4b;
+            border-radius: 50%;
+            margin-right: 4px;
+            animation: pulse-dot 1.8s infinite;
+        }
+        @keyframes pulse-dot {
+            0% { opacity: 0.4; transform: scale(0.9); }
+            50% { opacity: 1; transform: scale(1.2); }
+            100% { opacity: 0.4; transform: scale(0.9); }
+        }
+        .update-time {
+            color: #42648d;
+            font-weight: 400;
+            font-size: 0.85rem;
+        }
+        /* 卡片网格 */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            gap: 18px;
+            margin-bottom: 28px;
+        }
+        .bank-card {
+            background: white;
+            border-radius: 24px;
+            padding: 18px 16px 16px 16px;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.02);
+            transition: all 0.15s ease;
+            border: 1px solid rgba(0, 20, 40, 0.04);
+            display: flex;
+            flex-direction: column;
+        }
+        .bank-card:hover {
+            transform: translateY(-2px);
+            border-color: #cbdae9;
+            box-shadow: 0 12px 28px rgba(0, 30, 60, 0.06);
+        }
+        .bank-name {
+            font-weight: 600;
+            font-size: 1.2rem;
+            color: #11243e;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .bank-name small {
+            font-weight: 400;
+            font-size: 0.75rem;
+            background: #eaf0f8;
+            padding: 2px 10px;
+            border-radius: 40px;
+            color: #2d4d78;
+        }
+        .divider-light {
+            margin: 10px 0 8px 0;
+            border: none;
+            height: 1px;
+            background: linear-gradient(to right, #e0e9f3, transparent);
+        }
+        .metric-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            padding: 4px 0;
+        }
+        .metric-label {
+            color: #58749b;
+            font-size: 0.75rem;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+        }
+        .metric-value {
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: #0b1f3b;
+        }
+        .metric-value.dividend {
+            color: #1b6b3b;
+        }
+        .metric-value.price {
+            color: #1f3d62;
+        }
+        .metric-value.change {
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        .change.positive { color: #1f8b4c; }
+        .change.negative { color: #b33c3c; }
+        .chip {
+            background: #f0f5fe;
+            padding: 2px 10px;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            color: #1a3f6a;
+        }
+        /* 图表 + 表格 双栏 */
+        .chart-panel {
+            background: white;
+            border-radius: 28px;
+            padding: 22px 22px 18px 22px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.02);
+            border: 1px solid rgba(0, 0, 0, 0.02);
+            margin-bottom: 28px;
+        }
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+        .chart-header h3 {
+            font-weight: 600;
+            color: #0e284a;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .chart-header h3 i {
+            color: #ad8b4c;
+        }
+        .chart-container {
+            height: 220px;
+            width: 100%;
+            position: relative;
+        }
+        .table-wrap {
+            overflow-x: auto;
+            margin-top: 20px;
+            border-radius: 18px;
+            border: 1px solid #eef3f9;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            min-width: 580px;
+        }
+        th {
+            text-align: left;
+            padding: 14px 12px;
+            background: #f8fafd;
+            color: #1f3d62;
+            font-weight: 600;
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            border-bottom: 1px solid #e2eaf3;
+        }
+        td {
+            padding: 12px 12px;
+            border-bottom: 1px solid #e9f0f7;
+            color: #1a2f4a;
+        }
+        tr:last-child td { border-bottom: none; }
+        .highlight-dividend {
+            font-weight: 700;
+            color: #146c3a;
+        }
+        .badge-rate {
+            background: #e2f0e6;
+            padding: 4px 12px;
+            border-radius: 60px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #13592e;
+        }
+        .footer-note {
+            margin-top: 12px;
+            display: flex;
+            justify-content: flex-end;
+            color: #6c88aa;
+            font-size: 0.75rem;
+            gap: 18px;
+            flex-wrap: wrap;
+        }
+        .fa-rotate {
+            transition: transform 0.6s ease;
+        }
+        .refresh-btn {
+            background: transparent;
+            border: none;
+            color: #3b6a98;
+            font-weight: 500;
+            font-size: 0.85rem;
+            padding: 6px 14px;
+            border-radius: 30px;
+            cursor: pointer;
+            background: #ebf2fa;
+            transition: 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .refresh-btn:hover {
+            background: #d5e2f2;
+            color: #0b2d51;
+        }
+        .refresh-btn:active i {
+            transform: rotate(180deg);
+        }
+        @media (max-width: 680px) {
+            .header { flex-direction: column; align-items: flex-start; gap: 12px; }
+            .live-badge { align-self: flex-start; }
+            .card-grid { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
+        }
+    </style>
+</head>
+<body>
+<div class="dashboard" id="app">
+    <!-- 头部 -->
+    <header class="header">
+        <h1><i class="fas fa-chart-line"></i> 五大行 · 高股息监控</h1>
+        <div class="live-badge">
+            <span class="dot"></span> 
+            <span id="liveStatus">实时接口 · 模拟数据</span>
+            <span class="update-time" id="updateTimeDisplay">更新: 刚刚</span>
+            <button class="refresh-btn" id="refreshDataBtn"><i class="fas fa-sync-alt"></i> 刷新</button>
+        </div>
+    </header>
+
+    <!-- 卡片：五大行概览 (动态渲染) -->
+    <div class="card-grid" id="bankCardsContainer">
+        <!-- JS 动态生成 -->
+    </div>
+
+    <!-- 图表 + 数据表格 -->
+    <div class="chart-panel">
+        <div class="chart-header">
+            <h3><i class="fas fa-chart-bar"></i> 股息率 & 股价走势 (模拟)</h3>
+            <span style="font-size:0.8rem; color:#4d7aa0;"><i class="far fa-clock"></i> 近7日趋势</span>
+        </div>
+        <div class="chart-container">
+            <canvas id="dividendChart"></canvas>
+        </div>
+        <!-- 表格 -->
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>银行</th>
+                        <th>股价 (元)</th>
+                        <th>股息率 %</th>
+                        <th>每股股息 (元)</th>
+                        <th>涨跌幅</th>
+                        <th>高息评级</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <!-- JS 动态渲染 -->
+                </tbody>
+            </table>
+        </div>
+        <div class="footer-note">
+            <span><i class="fas fa-circle" style="color:#1f8b4c; font-size: 0.5rem;"></i> 高股息标杆 >5%</span>
+            <span><i class="fas fa-database"></i> 数据模拟，实时更新</span>
+        </div>
+    </div>
+</div>
+<script>
+    (function() {
+        // ---- 模拟数据接口 (五大行) ----
+        const BANK_NAMES = ['工商银行', '建设银行', '农业银行', '中国银行', '交通银行'];
+        // 基础数据 (股息率%, 股价, 每股股息, 涨跌幅%)
+        function generateMockData() {
+            // 使用固定种子使变化更自然，但每次刷新整体变动
+            const baseDividend = [6.2, 5.8, 6.5, 5.9, 5.3];  // 高股息
+            const basePrice = [5.12, 6.38, 4.25, 4.58, 6.02];
+            const baseDps = [0.32, 0.37, 0.28, 0.27, 0.32]; // 每股股息
+
+            // 微小波动 (模拟实时变动)
+            const variation = (min, max) => (Math.random() * (max - min) + min);
+            // 为了让数据稳定但有变化，使用随机偏移
+            const offset = (val, range) => {
+                const delta = (Math.random() - 0.5) * range * 2;
+                return Math.round((val + delta) * 100) / 100;
+            };
+
+            return BANK_NAMES.map((name, idx) => {
+                const divYield = Math.min(7.2, Math.max(4.8, offset(baseDividend[idx], 0.35)));
+                const price = Math.max(3.5, offset(basePrice[idx], 0.25));
+                const dps = Math.min(0.45, Math.max(0.18, offset(baseDps[idx], 0.04)));
+                // 涨跌幅在 -1.2% ~ +1.6% 之间
+                const change = Math.round((Math.random() * 2.8 - 1.0) * 100) / 100;
+                return {
+                    name,
+                    dividend: divYield,
+                    price: price,
+                    dps: dps,
+                    change: change,
+                };
+            });
+        }
+
+        // 存储当前数据
+        let currentData = [];
+        let chartInstance = null;
+
+        // DOM 元素
+        const cardsContainer = document.getElementById('bankCardsContainer');
+        const tableBody = document.getElementById('tableBody');
+        const updateTimeDisplay = document.getElementById('updateTimeDisplay');
+        const refreshBtn = document.getElementById('refreshDataBtn');
+
+        // 渲染卡片
+        function renderCards(data) {
+            let html = '';
+            data.forEach((item) => {
+                const changeClass = item.change >= 0 ? 'positive' : 'negative';
+                const changeSign = item.change >= 0 ? '+' : '';
+                html += `
+                    <div class="bank-card">
+                        <div class="bank-name">
+                            ${item.name}
+                            <small><i class="fas fa-coins"></i> 高息</small>
+                        </div>
+                        <hr class="divider-light">
+                        <div class="metric-row">
+                            <span class="metric-label"><i class="fas fa-percentage"></i> 股息率</span>
+                            <span class="metric-value dividend">${item.dividend.toFixed(2)}%</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label"><i class="fas fa-dollar-sign"></i> 股价</span>
+                            <span class="metric-value price">${item.price.toFixed(2)}</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label"><i class="fas fa-arrow-up"></i> 涨跌</span>
+                            <span class="metric-value change ${changeClass}">${changeSign}${item.change.toFixed(2)}%</span>
+                        </div>
+                        <div style="margin-top: 6px; display: flex; gap: 4px; flex-wrap: wrap;">
+                            <span class="chip"><i class="fas fa-hand-holding-usd"></i> 每股 ${item.dps.toFixed(2)}</span>
+                            <span class="chip" style="background: #e7eef8;">⏱️ 实时</span>
+                        </div>
+                    </div>
+                `;
+            });
+            cardsContainer.innerHTML = html;
+        }
+
+        // 渲染表格
+        function renderTable(data) {
+            let html = '';
+            data.forEach((item) => {
+                const changeClass = item.change >= 0 ? 'positive' : 'negative';
+                const changeSign = item.change >= 0 ? '+' : '';
+                const isHighYield = item.dividend >= 5.5;
+                html += `
+                    <tr>
+                        <td><strong>${item.name}</strong></td>
+                        <td>${item.price.toFixed(2)}</td>
+                        <td><span class="highlight-dividend">${item.dividend.toFixed(2)}%</span></td>
+                        <td>${item.dps.toFixed(2)}</td>
+                        <td class="${changeClass}">${changeSign}${item.change.toFixed(2)}%</td>
+                        <td>${isHighYield ? '<span class="badge-rate"><i class="fas fa-star" style="color:#d4a13e;"></i> 高息</span>' : '<span style="color:#5f7d9e;">—</span>'}</td>
+                    </tr>
+                `;
+            });
+            tableBody.innerHTML = html;
+        }
+
+        // 更新图表 (股息率柱状图 + 股价折线)
+        function updateChart(data) {
+            const ctx = document.getElementById('dividendChart').getContext('2d');
+            const labels = data.map(d => d.name);
+            const dividendValues = data.map(d => d.dividend);
+            const priceValues = data.map(d => d.price);
+
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            chartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: '股息率 %',
+                            data: dividendValues,
+                            backgroundColor: ['#2d6f4a', '#3a7d5a', '#478d68', '#569a78', '#68a888'],
+                            borderColor: '#1f543b',
+                            borderWidth: 1,
+                            borderRadius: 6,
+                            yAxisID: 'y',
+                            barPercentage: 0.55,
+                        },
+                        {
+                            label: '股价 (元)',
+                            data: priceValues,
+                            type: 'line',
+                            borderColor: '#2a5f8a',
+                            backgroundColor: 'rgba(42, 95, 138, 0.05)',
+                            borderWidth: 3,
+                            pointBackgroundColor: '#1d4670',
+                            pointBorderColor: 'white',
+                            pointBorderWidth: 1.5,
+                            pointRadius: 4,
+                            fill: false,
+                            tension: 0.1,
+                            yAxisID: 'y1',
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                boxWidth: 12,
+                                font: { size: 11, weight: '500' },
+                                color: '#294a70'
+                            },
+                            position: 'top',
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    let val = context.parsed.y;
+                                    if (context.dataset.label.includes('股息率')) {
+                                        return label + ': ' + val.toFixed(2) + '%';
+                                    } else {
+                                        return label + ': ' + val.toFixed(2) + ' 元';
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(0,0,0,0.03)' },
+                            ticks: { callback: (value) => value + '%', font: { size: 10 } },
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: '股息率 %',
+                                color: '#316745',
+                                font: { size: 10, weight: '500' }
+                            }
+                        },
+                        y1: {
+                            beginAtZero: true,
+                            grid: { drawOnChartArea: false },
+                            position: 'right',
+                            ticks: { font: { size: 10 } },
+                            title: {
+                                display: true,
+                                text: '股价 (元)',
+                                color: '#2a5f8a',
+                                font: { size: 10, weight: '500' }
+                            }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { font: { size: 10 } }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 刷新数据 & UI
+        function refreshData() {
+            // 模拟接口调用
+            const newData = generateMockData();
+            currentData = newData;
+
+            // 更新所有视图
+            renderCards(newData);
+            renderTable(newData);
+            updateChart(newData);
+
+            // 更新时间戳
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('zh-CN', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            updateTimeDisplay.textContent = `更新: ${timeStr}`;
+        }
+
+        // 初始化 + 自动刷新 (每30秒)
+        function init() {
+            refreshData();
+            // 定时刷新 (模拟实时数据)
+            setInterval(() => {
+                refreshData();
+            }, 30000); // 30秒
+
+            // 手动刷新
+            refreshBtn.addEventListener('click', function(e) {
+                refreshData();
+                // 增加点击反馈
+                const icon = this.querySelector('i');
+                icon.style.transition = 'transform 0.5s ease';
+                icon.style.transform = 'rotate(360deg)';
+                setTimeout(() => { icon.style.transform = 'rotate(0deg)'; }, 500);
+            });
+        }
+
+        // DOM 加载完毕后启动
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+    })();
+</script>
+</body>
+</html>

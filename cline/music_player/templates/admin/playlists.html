@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %}歌单管理 - 在线音乐管理系统{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0"><i class="fas fa-list me-2" style="color: var(--primary-color);"></i>歌单管理</h4>
+    <a href="{{ url_for('admin_playlist_create') }}" class="btn btn-primary">
+        <i class="fas fa-plus me-1"></i> 创建歌单
+    </a>
+</div>
+
+<div class="btn-group mb-4">
+    <a href="{{ url_for('admin_playlists', type='all') }}" class="btn btn-sm {% if filter_type == 'all' %}btn-primary{% else %}btn-dark{% endif %}">全部</a>
+    <a href="{{ url_for('admin_playlists', type='official') }}" class="btn btn-sm {% if filter_type == 'official' %}btn-primary{% else %}btn-dark{% endif %}">官方推荐</a>
+    <a href="{{ url_for('admin_playlists', type='user') }}" class="btn btn-sm {% if filter_type == 'user' %}btn-primary{% else %}btn-dark{% endif %}">用户创建</a>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        {% if playlists.items %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>歌单名称</th>
+                        <th>类型</th>
+                        <th>描述</th>
+                        <th>创建者</th>
+                        <th>播放</th>
+                        <th>创建时间</th>
+                        <th style="width: 120px;">操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pl in playlists.items %}
+                    <tr>
+                        <td>{{ pl.id }}</td>
+                        <td style="font-weight: 600;">{{ pl.name }}</td>
+                        <td>
+                            {% if pl.is_official %}
+                            <span class="badge-official">官方推荐</span>
+                            {% else %}
+                            <span class="genre-badge" style="font-size: 0.7rem;">用户</span>
+                            {% endif %}
+                        </td>
+                        <td style="color: var(--text-secondary); max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ pl.description }}</td>
+                        <td>{{ pl.creator.username if pl.creator else '未知' }}</td>
+                        <td><i class="fas fa-play-circle" style="color: var(--primary-color);"></i> {{ pl.play_count }}</td>
+                        <td style="font-size: 0.85rem; color: var(--text-muted);">{{ pl.created_at.strftime('%Y-%m-%d') if pl.created_at else '' }}</td>
+                        <td>
+                            <div class="d-flex gap-1">
+                                <a href="{{ url_for('admin_playlist_edit', playlist_id=pl.id) }}" class="btn btn-sm btn-outline-light">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <form method="POST" action="{{ url_for('admin_playlist_delete', playlist_id=pl.id) }}" style="display:inline;">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('确定删除此歌单？')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-4">
+            <p style="color: var(--text-secondary);">暂无歌单</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% if playlists.pages > 1 %}
+<nav class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if playlists.has_prev %}
+        <li class="page-item">
+            <a class="page-link" href="{{ url_for('admin_playlists', page=playlists.prev_num, type=filter_type) }}">
+                <i class="fas fa-chevron-left"></i>
+            </a>
+        </li>
+        {% endif %}
+        {% for page_num in playlists.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+            {% if page_num %}
+            <li class="page-item {% if page_num == playlists.page %}active{% endif %}">
+                <a class="page-link" href="{{ url_for('admin_playlists', page=page_num, type=filter_type) }}">{{ page_num }}</a>
+            </li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">...</span></li>
+            {% endif %}
+        {% endfor %}
+        {% if playlists.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="{{ url_for('admin_playlists', page=playlists.next_num, type=filter_type) }}">
+                <i class="fas fa-chevron-right"></i>
+            </a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

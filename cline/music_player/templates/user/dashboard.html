@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% block title %}个人中心 - 在线音乐管理系统{% endblock %}
+{% block content %}
+<div class="row">
+    <!-- 用户信息 -->
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <div style="width: 120px; height: 120px; border-radius: 50%; margin: 0 auto 15px; background: linear-gradient(135deg, var(--primary-color), #764ba2); display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-user" style="font-size: 3rem; color: rgba(255,255,255,0.5);"></i>
+                </div>
+                <h4>{{ user.username }}</h4>
+                <p style="color: var(--text-secondary);">
+                    {% if session.role == 'admin' %}
+                    <span class="badge-official">管理员</span>
+                    {% else %}
+                    <span class="genre-badge">普通用户</span>
+                    {% endif %}
+                </p>
+                <div style="color: var(--text-muted); font-size: 0.85rem;">
+                    <i class="fas fa-calendar"></i> 注册于: {{ user.created_at.strftime('%Y-%m-%d') if user.created_at else '未知' }}
+                </div>
+            </div>
+        </div>
+        <div class="card mt-3">
+            <div class="card-body">
+                <h6 style="color: var(--text-secondary);">数据概览</h6>
+                <hr style="border-color: var(--border-color);">
+                <div class="d-flex justify-content-between mb-2">
+                    <span style="color: var(--text-secondary);"><i class="fas fa-heart" style="color: #ff4d4f;"></i> 收藏</span>
+                    <span style="font-weight: 600;">{{ favorites_count }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span style="color: var(--text-secondary);"><i class="fas fa-list"></i> 歌单</span>
+                    <span style="font-weight: 600;">{{ playlists_count }}</span>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span style="color: var(--text-secondary);"><i class="fas fa-comment"></i> 评论</span>
+                    <span style="font-weight: 600;">{{ reviews_count }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <!-- 快速操作 -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5><i class="fas fa-bolt me-2" style="color: var(--primary-color);"></i>快速操作</h5>
+                <hr style="border-color: var(--border-color);">
+                <div class="d-flex flex-wrap gap-2">
+                    <a href="{{ url_for('user_favorites') }}" class="btn btn-outline-primary">
+                        <i class="fas fa-heart me-1"></i> 我的收藏
+                    </a>
+                    <a href="{{ url_for('user_playlists') }}" class="btn btn-outline-primary">
+                        <i class="fas fa-list me-1"></i> 我的歌单
+                    </a>
+                    <a href="{{ url_for('user_playlist_create') }}" class="btn btn-primary">
+                        <i class="fas fa-plus me-1"></i> 创建歌单
+                    </a>
+                    <a href="{{ url_for('search') }}" class="btn btn-outline-light">
+                        <i class="fas fa-search me-1"></i> 发现音乐
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 我的歌单 -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5><i class="fas fa-list me-2" style="color: var(--primary-color);"></i>我的歌单</h5>
+                <hr style="border-color: var(--border-color);">
+                {% if user_playlists %}
+                <div class="row g-2">
+                    {% for pl in user_playlists %}
+                    <div class="col-6 col-md-4">
+                        <div class="card playlist-card" data-playlist-id="{{ pl.id }}">
+                            <div class="card-body text-center p-3">
+                                <div style="width: 60px; height: 60px; border-radius: 8px; margin: 0 auto 8px; background: linear-gradient(135deg, hsl({{ loop.index * 50 }}, 70%, 40%) 0%, hsl({{ loop.index * 50 + 60 }}, 60%, 30%) 100%); display: flex; align-items: center; justify-content: center;">
+                                    <i class="fas fa-music" style="font-size: 1.5rem; color: rgba(255,255,255,0.3);"></i>
+                                </div>
+                                <div style="font-size: 0.85rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ pl.name }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p style="color: var(--text-secondary); text-align: center;">还没有创建歌单</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- 最近播放 -->
+        {% if recent_history %}
+        <div class="card">
+            <div class="card-body">
+                <h5><i class="fas fa-history me-2" style="color: var(--primary-color);"></i>最近播放</h5>
+                <hr style="border-color: var(--border-color);">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>歌曲</th>
+                                <th>歌手</th>
+                                <th>播放时间</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for h in recent_history %}
+                            <tr style="cursor: pointer;" onclick="window.location.href='{{ url_for('song_detail', song_id=h.song.id) }}'">
+                                <td>{{ h.song.title }}</td>
+                                <td style="color: var(--text-secondary);">{{ h.song.artist }}</td>
+                                <td style="color: var(--text-muted); font-size: 0.85rem;">{{ h.played_at.strftime('%Y-%m-%d %H:%M') if h.played_at else '' }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}{% if playlist %}编辑歌单{% else %}创建歌单{% endif %} - 在线音乐管理系统{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body p-4">
+                <h4 class="mb-4">
+                    <i class="fas {% if playlist %}fa-edit{% else %}fa-plus{% endif %} me-2" style="color: var(--primary-color);"></i>
+                    {% if playlist %}编辑歌单{% else %}创建歌单{% endif %}
+                </h4>
+                <form method="POST">
+                    <div class="mb-3">
+                        <label class="form-label">歌单名称</label>
+                        <input type="text" name="name" class="form-control" value="{{ playlist.name if playlist else '' }}" placeholder="输入歌单名称" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">歌单描述</label>
+                        <textarea name="description" class="form-control" rows="4" placeholder="描述你的歌单...">{{ playlist.description if playlist else '' }}</textarea>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i> {% if playlist %}保存{% else %}创建{% endif %}
+                        </button>
+                        <a href="{{ url_for('user_playlists') }}" class="btn btn-dark">取消</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

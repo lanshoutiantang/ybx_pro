@@ -1,0 +1,9 @@
+﻿# -*- coding: utf-8 -*-
+# 五大行高股息监控系统 - Python依赖
+# 安装: pip install -r requirements.txt
+flask>=3.0.0
+flask-cors>=4.0.0
+akshare>=1.14.0
+pandas>=2.0.0
+requests>=2.31.0
+urllib3>=1.26.0

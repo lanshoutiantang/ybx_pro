@@ -17,6 +17,10 @@
                         <li class="mb-2">📱 {{ tenant.phone }}</li>
                         <li class="mb-2">🆔 {{ tenant.id_card or '未填写' }}</li>
                     </ul>
+                    <hr>
+                    <a href="{{ url_for('tenant_appointments') }}" class="btn btn-outline-primary btn-sm w-100">
+                        📅 我的预约
+                    </a>
                 </div>
             </div>
         </div>
