@@ -18,9 +18,9 @@
                     </span>
                 </div>
                 <div class="d-flex justify-content-center gap-2">
-                    <a href="{{ url_for('play_song', song_id=song.id) }}" class="btn btn-primary">
+                    <button class="btn btn-primary play-btn" data-song-id="{{ song.id }}">
                         <i class="fas fa-play me-1"></i> 播放
-                    </a>
+                    </button>
                     {% if session.user_id %}
                         {% if is_favorited %}
                         <form method="POST" action="{{ url_for('favorite_remove', song_id=song.id) }}" style="display:inline;">

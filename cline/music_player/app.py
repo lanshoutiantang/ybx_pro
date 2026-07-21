@@ -387,7 +387,7 @@ def playlist_detail(playlist_id):
 
 # ==================== 路由 - 播放与API ====================
 
-@app.route('/play/<int:song_id>')
+@app.route('/play/<int:song_id>', methods=['GET', 'POST'])
 def play_song(song_id):
     """播放歌曲（增加播放计数）"""
     song = Song.query.get_or_404(song_id)
@@ -405,6 +405,10 @@ def play_song(song_id):
 
     db.session.add(history)
     db.session.commit()
+
+    # 如果是POST请求（AJAX），返回JSON
+    if request.method == 'POST':
+        return jsonify({'status': 'ok', 'play_count': song.play_count})
 
     return redirect(url_for('song_detail', song_id=song_id))
 
